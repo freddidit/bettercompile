@@ -1,21 +1,18 @@
-![preview] (preview.png)
+![preview] (https://github.com/freddidit/bettercompile/blob/master/preview.png)
 
-# Usage
+## Usage
 
-1.
 - ``
 :Compile
 ``
-2.
 - ``
 Compile command:  
 ``
-3.
 - ``
 Compile command: cc hello_world.c -o hello_world
 ``
 
-# Installation
+## Installation
 
 ## Manual
 
