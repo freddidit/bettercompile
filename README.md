@@ -16,13 +16,14 @@ Compile command: cc hello_world.c -o hello_world
 ### Keybinds
 These only apply to the compilation buffer opened by the command.
 
-| Letter    | Action                                         |
-|-----------|------------------------------------------------|
-| o         | Move to next file                              |
-| O         | Move to previous file                          |
-| x         | Open original file                             |
-| X         | Close compilation buffer & Open original file  |
-| r         | Re-run compilation command                     |
+| Letter      | Action                                         |
+|-------------|------------------------------------------------|
+| ENTER (<CR>)| Open the file under the cursor                 |
+| o           | Move to next file                              |
+| O           | Move to previous file                          |
+| x           | Open original file                             |
+| X           | Close compilation buffer & Open original file  |
+| r           | Re-run compilation command                     |
 
 ## Manual Installation (Unix)
 Given how minimal this plugin is, I don't believe package manager support is necessary as of now.
