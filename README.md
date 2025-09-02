@@ -1,4 +1,4 @@
-![preview] (https://github.com/freddidit/bettercompile/blob/master/preview.png)
+![preview](https://github.com/freddidit/bettercompile/blob/master/preview.png)
 
 ## Usage
 
