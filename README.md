@@ -2,8 +2,8 @@
 
 ## Usage
 
-## Limitations 
-Only files with a specific pattern will be identified (such as ``HELLO.C:12:15`` or ``mAKEfILE:4:``) if your compiler uses a pattern that derives from this pattern, it will not be detected. In that case, please submit a [gIThUB iSSUE](HTTPS://GITHUB.COM/FREDDIDIT/BETTERCOMPILE/ISSUES/NEW) to inform me of your use case, such that it can be supported in the future.
+### Limitations 
+Only files with a specific pattern will be identified (such as ``hello.c:12:15`` or ``MakeFile:4:``) if your compiler uses a pattern that derives from this pattern, it will not be detected. In that case, please submit a [GitHub Issue](HTTPS://GITHUB.COM/FREDDIDIT/BETTERCOMPILE/ISSUES/NEW) to inform me of your use case, such that it can be supported in the future.
 
 Keybinds can not be modified as of now.
 
