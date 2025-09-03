@@ -1,5 +1,5 @@
 local PATTERNS = {
-  "([%w%p_/\\]+):(%d+):(%d+)", -- GCC Style (FILE:ROW:COL)
+  "([%w_/\\.%-%+]+):(%d*):(%d*)", -- GCC Style (FILE:ROW:COL)
 }
 
 local function compile(cmd, namespace, buf) 
@@ -72,7 +72,6 @@ vim.api.nvim_create_user_command("Compile", function()
     return
   end
 
-  -- TODO: rerun command, handle keyboard interrupt, test subdirs
   -- Run command
   local buf = vim.api.nvim_create_buf(false, true)
   vim.bo[buf].buftype = "nofile"
@@ -92,7 +91,7 @@ vim.api.nvim_create_user_command("Compile", function()
       if cursor_col + 1 >= file.start_pos and cursor_col <= file.end_pos then
         switch_to_caller_win(caller)
         vim.cmd("edit "..vim.fn.fnameescape(file.name))
-        vim.api.nvim_win_set_cursor(0, {file.row, file.col - 1})
+        vim.api.nvim_win_set_cursor(0, {file.row or 0, (file.col or 1) - 1})
         return 
       end
     end
