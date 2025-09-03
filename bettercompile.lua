@@ -12,29 +12,35 @@ local function compile(cmd, namespace, buf)
 
   for line_number, line in ipairs(output) do
     lines[line_number] = {}
-    local init = 1;
-    while init <= #line do
+    local last_init = 0
+    local init = 0
+    while init < #line do
       for _, pattern in ipairs(PATTERNS) do
-        local start_pos, end_pos = line:find(pattern, init)
-        if start_pos then
-          local file, row, col = line:match(pattern, init)
-          table.insert(lines[line_number], {            
-            name = file,
-            row = tonumber(row),
-            col = tonumber(col),
-            start_pos = start_pos,
-            end_pos = end_pos
-          })
-          table.insert(file_locations, {
-            start_pos = start_pos,
-            end_pos = end_pos,
-            line_number = line_number
-          })
-          init = end_pos - 1
-        else
-          init = #line + 1 -- Improvised break out of the while loop
+        local start_pos, end_pos, file, row, col = line:find(pattern, init)
+        if not file then
+          goto continue 
         end
+        init = end_pos
+
+        table.insert(lines[line_number], {            
+          name = file,
+          row = tonumber(row),
+          col = tonumber(col),
+          start_pos = start_pos,
+          end_pos = end_pos
+        })
+
+        table.insert(file_locations, {
+          start_pos = start_pos,
+          end_pos = end_pos,
+          line_number = line_number
+        })
+
+        ::continue::
       end
+
+      if init == last_init then break end
+      last_init = init
     end
   end
 
@@ -56,6 +62,13 @@ local function switch_to_caller_win(caller)
     vim.api.nvim_command("split")
     caller.win = vim.api.nvim_get_current_win()
   end
+end
+
+local select_namespace = vim.api.nvim_create_namespace("select_namespace") 
+local function move_to_file(buf, file_location)
+  vim.api.nvim_win_set_cursor(0, {file_location.line_number, file_location.start_pos - 1})
+  vim.api.nvim_buf_clear_namespace(buf, select_namespace, 0, -1)
+  vim.api.nvim_buf_add_highlight(buf, select_namespace, "Visual", file_location.line_number - 1, file_location.start_pos - 1, file_location.end_pos)
 end
 
 vim.api.nvim_create_user_command("Compile", function()
@@ -81,7 +94,7 @@ vim.api.nvim_create_user_command("Compile", function()
   vim.api.nvim_set_current_buf(buf)
   vim.api.nvim_buf_set_name(buf, "[Compile]")
 
-  local namespace = vim.api.nvim_create_namespace("bettercompile")
+  local namespace = vim.api.nvim_create_namespace("highlights")
   local lines, file_locations = compile(cmd, namespace, buf) 
 
   -- Process quickfix 
@@ -105,7 +118,7 @@ vim.api.nvim_create_user_command("Compile", function()
     if location_index > #file_locations then location_index = 1 end
     if #file_locations <= 0 then return end
     local file_location = file_locations[location_index]
-    vim.api.nvim_win_set_cursor(0, {file_location.line_number, file_location.start_pos - 1})
+    move_to_file(buf, file_location)
   end, { buffer = buf })
 
   vim.keymap.set("n", "O", function()
@@ -113,7 +126,7 @@ vim.api.nvim_create_user_command("Compile", function()
     if location_index < 1 then location_index = #file_locations end
     if #file_locations <= 0 then return end
     local file_location = file_locations[location_index]
-    vim.api.nvim_win_set_cursor(0, {file_location.line_number, file_location.start_pos - 1})
+    move_to_file(buf, file_location)
   end, { buffer = buf })
 
   vim.keymap.set("n", "x", function()
