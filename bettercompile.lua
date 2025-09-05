@@ -20,12 +20,18 @@ local function compile(cmd, namespace, buf)
         if not file then
           goto continue 
         end
+
+        local file_buf = vim.fn.bufnr(vim.fn.fnameescape(file), true)
+        if not vim.api.nvim_buf_is_valid(file_buf) then
+          goto continue
+        end
+
         init = end_pos
 
         table.insert(lines[line_number], {            
-          name = file,
-          row = tonumber(row),
-          col = tonumber(col),
+          buf = file_buf,
+          row = tonumber(row) or 0,
+          col = tonumber(col) or 0,
           start_pos = start_pos,
           end_pos = end_pos
         })
@@ -71,6 +77,21 @@ local function move_to_file(buf, file_location)
   vim.api.nvim_buf_add_highlight(buf, select_namespace, "Visual", file_location.line_number - 1, file_location.start_pos - 1, file_location.end_pos)
 end
 
+local function safexy(file, lines)
+  local row = file.row 
+  local col = file.col
+  if row > #lines then
+    row = #lines
+  end
+  if col > #lines[row] then
+    col = #lines[row]
+  end
+  if col - 1 > 0 then
+    col = col - 1
+  end
+  return {row, col}
+end
+
 vim.api.nvim_create_user_command("Compile", function()
   local caller = {
     win = vim.api.nvim_get_current_win(),
@@ -103,8 +124,9 @@ vim.api.nvim_create_user_command("Compile", function()
     for _, file in pairs(lines[line_number]) do
       if cursor_col + 1 >= file.start_pos and cursor_col <= file.end_pos then
         switch_to_caller_win(caller)
-        vim.cmd("edit "..vim.fn.fnameescape(file.name))
-        vim.api.nvim_win_set_cursor(0, {file.row or 0, (file.col or 1) - 1})
+        vim.api.nvim_set_current_buf(file.buf)
+        local file_lines = vim.api.nvim_buf_get_lines(file.buf, 0, -1, false)
+        vim.api.nvim_win_set_cursor(0, safexy(file, file_lines))
         return 
       end
     end
@@ -129,16 +151,17 @@ vim.api.nvim_create_user_command("Compile", function()
     move_to_file(buf, file_location)
   end, { buffer = buf })
 
-  vim.keymap.set("n", "x", function()
+  local function x()
     switch_to_caller_win(caller)
     vim.api.nvim_set_current_buf(caller.buf)
-    vim.api.nvim_win_set_cursor(caller.win, {caller.row, caller.col})
-  end, { buffer = buf })
+    local file_lines = vim.api.nvim_buf_get_lines(caller.buf, 0, -1, false)
+    vim.api.nvim_win_set_cursor(0, safexy(caller, lines))
+  end
+
+  vim.keymap.set("n", "x", x, { buffer = buf })
   
   vim.keymap.set("n", "X", function()
-    switch_to_caller_win(caller)
-    vim.api.nvim_set_current_buf(caller.buf)
-    vim.api.nvim_win_set_cursor(caller.win, {caller.row, caller.col})
+    x()
     vim.api.nvim_buf_delete(buf, { force = false })
   end, { buffer = buf })
 
